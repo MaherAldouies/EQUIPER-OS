@@ -1,0 +1,50 @@
+# Render Blueprint — free-tier deployment.
+# In the Render dashboard: New → Blueprint → pick this repo, and Render
+# reads this file to create both resources below automatically.
+#
+# What is NOT covered by the free plan (see chat for details):
+#   - Background workers (events:relay, queue:work, x:poll-mentions,
+#     salla:reconcile, dashboard:refresh) — Render's free tier has no
+#     worker service. The web app (login/dashboard/forms) works; the
+#     always-on sync/publishing automation does not, until upgraded.
+#   - The free Postgres instance expires after 90 days and must be
+#     recreated + DATABASE_URL updated manually.
+#   - Redis is not required — CACHE_STORE/SESSION_DRIVER/QUEUE_CONNECTION
+#     are all set to the `database` driver in .env, so the app boots
+#     fine without it.
+
+services:
+  - type: web
+    name: equiper-os
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        sync: false # generate locally with `php artisan key:generate --show`, paste in Render dashboard
+      - key: APP_URL
+        value: https://equiper-os.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: equiper-os-db
+          property: connectionString
+      - key: CACHE_STORE
+        value: database
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: LOG_CHANNEL
+        value: stderr
+
+databases:
+  - name: equiper-os-db
+    plan: free
+    databaseName: equiper_os
+    user: equiper_os
