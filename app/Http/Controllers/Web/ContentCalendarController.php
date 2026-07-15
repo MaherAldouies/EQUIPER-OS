@@ -5,7 +5,12 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\ContentAsset;
 use App\Repositories\Contracts\ContentAssetRepositoryInterface;
+use App\Services\Social\MetaPublisher;
+use App\Services\Social\SocialPublisherInterface;
+use App\Services\Social\TikTokPublisher;
+use App\Services\Social\XPublisher;
 use Illuminate\Http\Request;
+use RuntimeException;
 
 class ContentCalendarController extends Controller
 {
@@ -35,8 +40,11 @@ class ContentCalendarController extends Controller
     }
 
     /**
-     * v1.0 uses manual-confirm publishing (PRD F10) — no direct social
-     * platform API publishing yet.
+     * PRD F10's original manual-confirm flow: a human posted the
+     * content manually elsewhere and confirms it here. Still the only
+     * option for channels with no direct-publish integration (e.g. a
+     * platform not yet connected, or TikTok's reply-less nature makes
+     * no difference here since this is publish-side, not reply-side).
      */
     public function confirmPublished(Request $request, ContentAsset $asset)
     {
@@ -45,5 +53,29 @@ class ContentCalendarController extends Controller
         $asset->confirmPublished();
 
         return back()->with('status', 'تم تأكيد النشر.');
+    }
+
+    /**
+     * Social Media Hub epic: direct publish via the platform's own
+     * API, for channels EQUIPER OS is actually connected to. Still
+     * exclusively human-triggered by this controller action.
+     */
+    public function publishNow(Request $request, ContentAsset $asset)
+    {
+        $this->authorize('publish', $asset);
+
+        $asset->publishNow($this->resolvePublisher($asset));
+
+        return back()->with('status', 'تم النشر مباشرة على المنصة.');
+    }
+
+    private function resolvePublisher(ContentAsset $asset): SocialPublisherInterface
+    {
+        return match (true) {
+            in_array($asset->channel, ['instagram_caption', 'facebook_post'], true) => new MetaPublisher(),
+            $asset->channel === 'tiktok_video' => new TikTokPublisher(),
+            $asset->channel === 'x_post' => new XPublisher(),
+            default => throw new RuntimeException("No direct-publish integration for channel '{$asset->channel}' yet — use 'confirm published' after posting manually."),
+        };
     }
 }

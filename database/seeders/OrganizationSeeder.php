@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use App\Models\Organization;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Bootstraps EQUIPER as the single v1.0 Organization (tenant), and the
@@ -31,6 +33,7 @@ class OrganizationSeeder extends Seeder
             'brand_voice.manage',
             'team.manage',
             'integration.configure',
+            'social.manage', // Social Media Hub: publish + reply inbox
         ];
 
         foreach ($permissions as $key) {
@@ -44,6 +47,7 @@ class OrganizationSeeder extends Seeder
                 'permissions' => [
                     'product.view', 'content.view', 'content.approve', 'content.edit',
                     'seo.view', 'campaign.view', 'campaign.manage', 'dashboard.view_revenue',
+                    'social.manage',
                 ],
             ],
             'seo_specialist' => [
@@ -69,5 +73,21 @@ class OrganizationSeeder extends Seeder
 
             $role->permissions()->syncWithoutDetaching($permissionIds);
         }
+
+        // Local-dev bootstrap Owner login — F2's "Owner invites Team
+        // Member" flow needs at least one existing Owner to invite from.
+        $owner = User::query()->firstOrCreate(
+            ['email' => 'owner@equiper.test'],
+            [
+                'organization_id' => $org->id,
+                'name' => 'Equiper Owner',
+                'password' => Hash::make('password'),
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]
+        );
+
+        $ownerRole = Role::query()->where('organization_id', $org->id)->where('key', 'owner')->first();
+        $owner->roles()->syncWithoutDetaching([$ownerRole->id]);
     }
 }

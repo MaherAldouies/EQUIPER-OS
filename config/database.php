@@ -95,6 +95,15 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => 'prefer',
+            // Without this, Laravel inherits the Postgres server's own
+            // session timezone default (found to be Asia/Riyadh on this
+            // server, not UTC). Every timestampTz column then silently
+            // shifts by the server's UTC offset relative to plain
+            // timestamp columns and the app's APP_TIMEZONE=UTC — a real
+            // bug caught while testing token expiry logic. Laravel's
+            // PostgresConnector issues `SET TIME ZONE` with this value
+            // right after connecting.
+            'timezone' => 'UTC',
         ],
 
         'sqlsrv' => [

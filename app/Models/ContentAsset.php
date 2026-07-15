@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Social\SocialPublisherInterface;
 use App\Traits\HasDomainEvents;
 use App\Traits\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -89,6 +90,41 @@ class ContentAsset extends Model
 
             $this->recordEvent(eventType: 'AssetPublished', payload: [
                 'published_at' => now()->toIso8601String(),
+            ]);
+        });
+    }
+
+    /**
+     * Social Media Hub epic: direct publish via a platform API,
+     * replacing the "post manually elsewhere, then confirm" flow above
+     * for platforms EQUIPER OS is actually connected to. Still
+     * exclusively human-triggered — the caller (a controller/Livewire
+     * action responding to a button click) decides when this runs;
+     * nothing here fires automatically.
+     */
+    public function publishNow(SocialPublisherInterface $publisher): void
+    {
+        if (! in_array($this->status, ['approved', 'scheduled'], true)) {
+            throw new RuntimeException(
+                "Cannot publish ContentAsset {$this->id}: status is '{$this->status}', ".
+                "must be 'approved' or 'scheduled' first (same F7/F10 guard rail as confirmPublished())."
+            );
+        }
+
+        $platformPostId = $publisher->publish($this);
+
+        DB::transaction(function () use ($platformPostId) {
+            $this->forceFill([
+                'status' => 'published',
+                'published_at' => now(),
+                'channel_metadata' => array_merge($this->channel_metadata ?? [], [
+                    'platform_post_id' => $platformPostId,
+                ]),
+            ])->save();
+
+            $this->recordEvent(eventType: 'AssetPublished', payload: [
+                'published_at' => now()->toIso8601String(),
+                'platform_post_id' => $platformPostId,
             ]);
         });
     }

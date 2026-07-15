@@ -13,12 +13,9 @@ use Throwable;
 /**
  * SallaSyncService — the Anti-Corruption Layer (Business Ontology,
  * Section 0) between Salla's data model and EQUIPER OS's own language.
- *
- * IMPORTANT: This is a Sprint 0/1 SKELETON. The actual Salla Partner API
- * client, webhook signature verification, and full field mapping are
- * explicitly flagged as the highest-risk unknown in the PRD (Sprint 0's
- * mandatory technical spike) — do NOT treat the mapping logic below as
- * final until that spike confirms Salla's real API/webhook payload shape.
+ * Field mapping confirmed against docs.salla.dev (Product Details,
+ * Order Details resources) — not exhaustively verified against a live
+ * account, so treat as high-confidence rather than guaranteed.
  *
  * This class deliberately owns 100% of the Salla-shape-awareness in the
  * system — no other class should ever read a raw Salla payload field.
@@ -33,7 +30,7 @@ class SallaSyncService
      * Upserts a single product from a raw Salla payload (webhook or
      * reconciliation poll) into EQUIPER OS's own Product entity.
      *
-     * @param  array  $sallaPayload  Raw payload as received from Salla — shape TBD by Sprint 0 spike.
+     * @param  array  $sallaPayload  Raw payload as received from Salla.
      */
     public function syncProduct(array $sallaPayload): Product
     {
@@ -46,10 +43,12 @@ class SallaSyncService
                     ],
                     [
                         // --- Translation layer: Salla's shape -> EQUIPER OS's language ---
-                        // NOTE: field names below are placeholders pending the Sprint 0
-                        // Salla API spike confirming the actual payload shape.
                         'salla_raw_payload' => $sallaPayload,
-                        'salla_category_name' => $sallaPayload['category']['name'] ?? null,
+                        // Salla's Product Details resource returns `categories`
+                        // as an array (a product can carry multiple Salla
+                        // categories); we keep the first as the raw reference
+                        // shown alongside EQUIPER's own corrected Category (F4).
+                        'salla_category_name' => $sallaPayload['categories'][0]['name'] ?? null,
                         'name' => $sallaPayload['name'] ?? '',
                         'sku' => $sallaPayload['sku'] ?? null,
                         'price' => $sallaPayload['price']['amount'] ?? null,
@@ -85,7 +84,7 @@ class SallaSyncService
      * Ontology's explicit rule, Orders are read-only and only ever
      * written here — no other code path may create/update an Order.
      *
-     * @param  array  $sallaPayload  Raw payload — shape TBD by Sprint 0 spike.
+     * @param  array  $sallaPayload  Raw payload as received from Salla.
      */
     public function syncOrder(array $sallaPayload): Order
     {
@@ -98,7 +97,9 @@ class SallaSyncService
                     ],
                     [
                         'salla_raw_payload' => $sallaPayload,
-                        'status' => $this->mapOrderStatus($sallaPayload['status'] ?? 'unknown'),
+                        // Order Details' `status` is an object {name,color,slug},
+                        // not a plain string — we key our own vocabulary off the slug.
+                        'status' => $this->mapOrderStatus($sallaPayload['status']['slug'] ?? 'unknown'),
                         'total_amount' => $sallaPayload['amounts']['total']['amount'] ?? 0,
                         'currency' => $sallaPayload['currency'] ?? 'SAR',
                         'customer_reference' => $sallaPayload['customer']['id'] ?? null,
@@ -146,14 +147,16 @@ class SallaSyncService
 
     private function mapOrderStatus(string $sallaStatus): string
     {
-        // Placeholder mapping pending Sprint 0 spike confirming Salla's
-        // actual status vocabulary.
+        // Salla's order status slugs are merchant-customizable (Salla
+        // supports creating custom sub-statuses), so this maps the
+        // confirmed default vocabulary and falls back to 'placed' for
+        // any custom/unrecognized slug rather than throwing.
         return match ($sallaStatus) {
             'completed', 'delivered' => 'completed',
-            'processing', 'confirmed' => 'confirmed',
-            'shipped' => 'fulfilled',
+            'under_review', 'processing', 'confirmed' => 'confirmed',
+            'delivering', 'shipped' => 'fulfilled',
             'cancelled' => 'cancelled',
-            'returned', 'refunded' => 'returned',
+            'restoring', 'returned', 'refunded' => 'returned',
             default => 'placed',
         };
     }

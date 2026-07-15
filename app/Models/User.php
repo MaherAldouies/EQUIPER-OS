@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 /**
  * User — implements the Business Ontology's "Team Member" entity
@@ -17,7 +18,7 @@ use Illuminate\Notifications\Notifiable;
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, HasDomainEvents, HasUuidPrimaryKey, Notifiable;
+    use HasApiTokens, HasFactory, HasDomainEvents, HasUuidPrimaryKey, Notifiable;
 
     protected $fillable = [
         'organization_id', 'name', 'email', 'password', 'status',

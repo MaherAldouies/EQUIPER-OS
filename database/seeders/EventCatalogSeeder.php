@@ -60,6 +60,10 @@ class EventCatalogSeeder extends Seeder
 
             // F2 — Identity, Roles & Permissions
             ['event_type' => 'TeamMemberActivated', 'aggregate_type' => 'User', 'owning_domain' => 'Administration Domain', 'description' => 'A Team Member was invited/activated.'],
+
+            // Social Media Hub — unified inbox + direct publish
+            ['event_type' => 'SocialMessageReceived', 'aggregate_type' => 'SocialMessage', 'owning_domain' => 'Marketing Domain', 'description' => 'An inbound message/comment arrived from a connected social platform.'],
+            ['event_type' => 'SocialMessageReplied', 'aggregate_type' => 'SocialMessage', 'owning_domain' => 'Marketing Domain', 'description' => 'A human sent a reply to a social message from the unified inbox.'],
         ];
 
         foreach ($events as $event) {

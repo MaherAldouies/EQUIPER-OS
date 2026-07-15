@@ -24,6 +24,14 @@ Schedule::command('dashboard:refresh')
     ->everyThirtyMinutes()
     ->withoutOverlapping();
 
+// Social Media Hub, Phase 5: X has no free real-time webhook push at
+// the pay-per-use tier, so mentions are polled instead. COST WARNING:
+// every run bills the connected account — do not shorten this cadence
+// without accepting the cost impact (see equiperos.x config).
+Schedule::command('x:poll-mentions')
+    ->everyThirtyMinutes()
+    ->withoutOverlapping();
+
 // Note: events:relay and events:consume-product-enriched are NOT
 // scheduled here — per the Infrastructure Architecture document,
 // Section 3, these run as continuous long-running worker processes
