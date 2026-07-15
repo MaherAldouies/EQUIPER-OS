@@ -9,20 +9,21 @@ use App\Http\Controllers\Web\ContentApprovalController;
 use App\Http\Controllers\Web\ContentCalendarController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ProductController;
-use App\Http\Controllers\Web\TeamController;
 use App\Livewire\Approvals\Queue as ApprovalsQueue;
 use App\Livewire\Inbox\Index as InboxIndex;
 use App\Livewire\Products\Index as ProductsIndex;
 use App\Livewire\Settings\Integrations as IntegrationsSettings;
+use App\Livewire\Tasks\Index as TasksIndex;
+use App\Livewire\Users\Index as UsersIndex;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-| No public registration (PRD F2) — the Owner invites Team Members
-| (TeamController::invite), who then set their password via the
-| standard Laravel password-reset flow (NewPasswordController).
+| No public registration (PRD F2) — the Owner adds Team Members directly
+| (Users\Index Livewire component, permission: team.manage), setting
+| their password manually rather than depending on outbound mail.
 */
 
 Route::get('/', fn () => redirect()->route('dashboard'))->middleware('auth');
@@ -79,8 +80,11 @@ Route::middleware(['auth', 'current-organization'])->group(function () {
     });
 
     Route::middleware('permission:team.manage')->group(function () {
-        Route::get('team', [TeamController::class, 'index'])->name('team.index');
-        Route::post('team/invite', [TeamController::class, 'invite'])->name('team.invite');
+        Route::get('users', UsersIndex::class)->name('users.index');
+    });
+
+    Route::middleware('permission:task.manage')->group(function () {
+        Route::get('tasks', TasksIndex::class)->name('tasks.index');
     });
 
     Route::middleware('permission:social.manage')->group(function () {

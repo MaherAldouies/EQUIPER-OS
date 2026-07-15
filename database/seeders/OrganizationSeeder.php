@@ -32,6 +32,7 @@ class OrganizationSeeder extends Seeder
             'dashboard.view_revenue',
             'brand_voice.manage',
             'team.manage',
+            'task.manage',
             'integration.configure',
             'social.manage', // Social Media Hub: publish + reply inbox
         ];
@@ -47,7 +48,7 @@ class OrganizationSeeder extends Seeder
                 'permissions' => [
                     'product.view', 'content.view', 'content.approve', 'content.edit',
                     'seo.view', 'campaign.view', 'campaign.manage', 'dashboard.view_revenue',
-                    'social.manage',
+                    'social.manage', 'task.manage',
                 ],
             ],
             'seo_specialist' => [

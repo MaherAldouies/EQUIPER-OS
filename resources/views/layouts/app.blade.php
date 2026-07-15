@@ -31,7 +31,10 @@
                 <a href="{{ route('inbox.index') }}" class="block px-3 py-2 rounded-md hover:bg-gray-800 {{ request()->routeIs('inbox.*') ? 'bg-gray-800 text-white' : '' }}">صندوق الوارد الموحد</a>
                 @endcan
                 @can('team.manage')
-                <a href="{{ route('team.index') }}" class="block px-3 py-2 rounded-md hover:bg-gray-800 {{ request()->routeIs('team.*') ? 'bg-gray-800 text-white' : '' }}">الفريق</a>
+                <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md hover:bg-gray-800 {{ request()->routeIs('users.*') ? 'bg-gray-800 text-white' : '' }}">المستخدمون</a>
+                @endcan
+                @can('task.manage')
+                <a href="{{ route('tasks.index') }}" class="block px-3 py-2 rounded-md hover:bg-gray-800 {{ request()->routeIs('tasks.*') ? 'bg-gray-800 text-white' : '' }}">المهام</a>
                 @endcan
                 @can('integration.configure')
                 <a href="{{ route('settings.integrations') }}" class="block px-3 py-2 rounded-md hover:bg-gray-800 {{ request()->routeIs('settings.*') ? 'bg-gray-800 text-white' : '' }}">إعدادات التكاملات</a>
