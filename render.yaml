@@ -27,7 +27,12 @@ services:
       - key: APP_KEY
         sync: false # generate locally with `php artisan key:generate --show`, paste in Render dashboard
       - key: APP_URL
-        value: https://equiper-os.onrender.com
+        # "equiper-os" was already taken on Render's shared subdomain
+        # namespace, so it auto-assigned "equiper-os-piks" instead —
+        # this MUST match the service's actual onrender.com hostname
+        # shown in the Render dashboard, or generated links/redirects
+        # (including the login form's own action URL) will be wrong.
+        value: https://equiper-os-piks.onrender.com
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
