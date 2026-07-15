@@ -27,5 +27,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction \
 EXPOSE 10000
 
 # Render sets $PORT at runtime; migrations run on boot (safe to run on
-# every deploy — Laravel's migrator only applies pending ones).
-CMD php artisan migrate --force && php artisan config:cache && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
+# every deploy — Laravel's migrator only applies pending ones). Seeding
+# is likewise safe to repeat: OrganizationSeeder/EventCatalogSeeder use
+# firstOrCreate/updateOrCreate, and DemoDataSeeder explicitly refuses to
+# run when APP_ENV=production (see its own guard) — so this creates the
+# real Owner login + roles once and is a no-op on every deploy after.
+CMD php artisan migrate --force && php artisan db:seed --force && php artisan config:cache && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}
