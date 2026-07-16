@@ -3,7 +3,15 @@
 @section('title', 'لوحة التحكم')
 
 @section('content')
-    <h1 class="text-2xl font-bold mb-6">لوحة التحكم</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">لوحة التحكم</h1>
+        @can('integration.configure')
+            <form method="POST" action="{{ route('dashboard.sync-now') }}">
+                @csrf
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">مزامنة الآن</button>
+            </form>
+        @endcan
+    </div>
 
     @php
         $card = function (string $title, $signal, string $unit = '') {

@@ -43,6 +43,9 @@ Route::middleware(['auth', 'current-organization'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('dashboard/sync-now', [DashboardController::class, 'syncNow'])
+        ->name('dashboard.sync-now')
+        ->middleware('permission:integration.configure');
 
     Route::middleware('permission:product.view')->group(function () {
         Route::get('products', ProductsIndex::class)->name('products.index');

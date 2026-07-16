@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\AnalyticsSignal;
 use App\Models\Integration;
+use App\Services\Analytics\DashboardSyncRunner;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class DashboardController extends Controller
 {
@@ -38,5 +40,20 @@ class DashboardController extends Controller
             'canViewRevenue' => $canViewRevenue,
             'integrations' => Integration::query()->where('organization_id', $organization->id)->get(),
         ]);
+    }
+
+    public function syncNow(Request $request)
+    {
+        Gate::authorize('integration.configure');
+
+        $organization = $request->attributes->get('organization');
+
+        $errors = DashboardSyncRunner::run($organization, now());
+
+        if ($errors === []) {
+            return back()->with('status', 'تمت مزامنة بيانات اللوحة بنجاح.');
+        }
+
+        return back()->with('status', 'تمت المزامنة مع بعض الأخطاء: '.implode(' | ', $errors));
     }
 }
