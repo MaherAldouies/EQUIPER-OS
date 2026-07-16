@@ -16,6 +16,11 @@
         }
         $cards[] = $card('محتوى بانتظار المراجعة', $contentPipelineSignal);
         $cards[] = $card('نقرات البحث العضوي', $organicClicksSignal);
+        $cards[] = $card('جلسات Google Analytics (اليوم)', $ga4SessionsSignal);
+        $cards[] = $card('مستخدمو Google Analytics (اليوم)', $ga4UsersSignal);
+        $cards[] = $card('تحويلات Google Analytics (اليوم)', $ga4ConversionsSignal);
+        $cards[] = $card('منتجات Merchant Center النشطة', $merchantActiveProductsSignal);
+        $cards[] = $card('منتجات بها مشاكل (Merchant Center)', $merchantIssuesSignal);
     @endphp
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

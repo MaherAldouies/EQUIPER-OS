@@ -4,8 +4,11 @@ namespace App\Console\Commands;
 
 use App\Models\Organization;
 use App\Services\Analytics\DashboardAggregationService;
+use App\Services\GoogleAnalytics\GoogleAnalyticsService;
+use App\Services\GoogleMerchant\GoogleMerchantService;
 use App\Services\GoogleSearchConsole\SearchConsoleService;
 use Illuminate\Console\Command;
+use Throwable;
 
 /**
  * RefreshDashboardSignals — F9 acceptance criteria: "Data refreshes at
@@ -27,6 +30,18 @@ class RefreshDashboardSignals extends Command
             $dashboard->refreshContentPipelineSignal($today);
 
             (new SearchConsoleService($organization->id))->pullDailyPerformance($today);
+
+            try {
+                (new GoogleAnalyticsService($organization->id))->pullDailySummary($today);
+            } catch (Throwable $e) {
+                $this->error("Google Analytics pull failed for [{$organization->slug}]: {$e->getMessage()}");
+            }
+
+            try {
+                (new GoogleMerchantService($organization->id))->pullDailySummary($today);
+            } catch (Throwable $e) {
+                $this->error("Google Merchant Center pull failed for [{$organization->slug}]: {$e->getMessage()}");
+            }
 
             $this->info("Refreshed dashboard signals for organization [{$organization->slug}].");
         });

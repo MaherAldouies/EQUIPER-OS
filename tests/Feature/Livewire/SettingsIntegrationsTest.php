@@ -110,4 +110,62 @@ class SettingsIntegrationsTest extends TestCase
         $this->assertSame('x-access', $integration->credential->access_token);
         $this->assertSame('x-refresh', $integration->credential->refresh_token);
     }
+
+    public function test_saving_google_analytics_settings_persists_encrypted_and_is_never_redisplayed(): void
+    {
+        $organization = Organization::factory()->create();
+        $user = $this->configuratorUser($organization);
+
+        Livewire::actingAs($user)
+            ->test(Integrations::class)
+            ->set('google_analytics_property_id', 'properties/123456')
+            ->set('google_analytics_client_email', 'svc@project.iam.gserviceaccount.com')
+            ->set('google_analytics_private_key', "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----\n")
+            ->call('saveGoogleAnalytics')
+            ->assertSet('google_analytics_client_email', '')
+            ->assertSet('google_analytics_private_key', '');
+
+        $integration = Integration::query()->where('organization_id', $organization->id)->where('provider', 'google_analytics')->firstOrFail();
+
+        $this->assertSame('properties/123456', $integration->settings['property_id']);
+        $this->assertSame('svc@project.iam.gserviceaccount.com', $integration->credential->secrets['client_email']);
+        $this->assertStringContainsString('FAKE', $integration->credential->secrets['private_key']);
+
+        $raw = DB::table('integration_credentials')->where('id', $integration->credential->id)->first();
+        $this->assertStringNotContainsString('svc@project.iam.gserviceaccount.com', $raw->secrets);
+    }
+
+    public function test_saving_google_merchant_settings_persists_non_secret_and_secret_fields(): void
+    {
+        $organization = Organization::factory()->create();
+        $user = $this->configuratorUser($organization);
+
+        Livewire::actingAs($user)
+            ->test(Integrations::class)
+            ->set('google_merchant_id', '999888777')
+            ->set('google_merchant_client_email', 'merchant-svc@project.iam.gserviceaccount.com')
+            ->set('google_merchant_private_key', "-----BEGIN PRIVATE KEY-----\nFAKE2\n-----END PRIVATE KEY-----\n")
+            ->call('saveGoogleMerchant');
+
+        $integration = Integration::query()->where('organization_id', $organization->id)->where('provider', 'google_merchant')->firstOrFail();
+
+        $this->assertSame('999888777', $integration->settings['merchant_id']);
+        $this->assertSame('merchant-svc@project.iam.gserviceaccount.com', $integration->credential->secrets['client_email']);
+    }
+
+    public function test_saving_google_tag_manager_container_id_marks_it_healthy(): void
+    {
+        $organization = Organization::factory()->create();
+        $user = $this->configuratorUser($organization);
+
+        Livewire::actingAs($user)
+            ->test(Integrations::class)
+            ->set('google_tag_manager_container_id', 'GTM-ABC1234')
+            ->call('saveGoogleTagManager');
+
+        $integration = Integration::query()->where('organization_id', $organization->id)->where('provider', 'google_tag_manager')->firstOrFail();
+
+        $this->assertSame('GTM-ABC1234', $integration->settings['container_id']);
+        $this->assertSame('connected', $integration->status);
+    }
 }

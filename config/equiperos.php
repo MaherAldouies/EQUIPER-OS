@@ -72,4 +72,32 @@ return [
         'mentions_poll_interval_minutes' => env('X_MENTIONS_POLL_INTERVAL_MINUTES', 30),
     ],
 
+    // F9 Dashboard — Google Analytics 4 Data API (read-only reporting).
+    // Auth: service-account JWT-bearer (no user OAuth consent needed) —
+    // grant the service account "Viewer" access on the GA4 property.
+    'google_analytics' => [
+        'api_base_url' => env('GOOGLE_ANALYTICS_API_BASE_URL', 'https://analyticsdata.googleapis.com/v1beta'),
+        'token_url' => env('GOOGLE_OAUTH_TOKEN_URL', 'https://oauth2.googleapis.com/token'),
+        'property_id' => env('GOOGLE_ANALYTICS_PROPERTY_ID'),
+        'client_email' => env('GOOGLE_ANALYTICS_CLIENT_EMAIL'),
+        'private_key' => env('GOOGLE_ANALYTICS_PRIVATE_KEY'),
+    ],
+
+    // F9 Dashboard — Google Merchant Center Content API for Shopping
+    // (product feed health: active product count, count with issues).
+    // Same service-account auth pattern as google_analytics above.
+    'google_merchant' => [
+        'api_base_url' => env('GOOGLE_MERCHANT_API_BASE_URL', 'https://shoppingcontent.googleapis.com/content/v2.1'),
+        'token_url' => env('GOOGLE_OAUTH_TOKEN_URL', 'https://oauth2.googleapis.com/token'),
+        'merchant_id' => env('GOOGLE_MERCHANT_ID'),
+        'client_email' => env('GOOGLE_MERCHANT_CLIENT_EMAIL'),
+        'private_key' => env('GOOGLE_MERCHANT_PRIVATE_KEY'),
+    ],
+
+    // Google Tag Manager — deployment only, no reporting API in v1.0:
+    // stores the container ID so it can be pasted into the storefront.
+    'google_tag_manager' => [
+        'container_id' => env('GOOGLE_TAG_MANAGER_CONTAINER_ID'),
+    ],
+
 ];

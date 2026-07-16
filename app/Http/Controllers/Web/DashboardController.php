@@ -30,6 +30,11 @@ class DashboardController extends Controller
             'orderCountSignal' => $canViewRevenue ? $signal('daily_order_count') : null,
             'contentPipelineSignal' => $signal('content_pipeline_pending_count', 'internal'),
             'organicClicksSignal' => $signal('organic_clicks', 'google_search_console'),
+            'ga4SessionsSignal' => $signal('ga4_sessions', 'google_analytics'),
+            'ga4UsersSignal' => $signal('ga4_users', 'google_analytics'),
+            'ga4ConversionsSignal' => $signal('ga4_conversions', 'google_analytics'),
+            'merchantActiveProductsSignal' => $signal('merchant_active_products', 'google_merchant'),
+            'merchantIssuesSignal' => $signal('merchant_products_with_issues', 'google_merchant'),
             'canViewRevenue' => $canViewRevenue,
             'integrations' => Integration::query()->where('organization_id', $organization->id)->get(),
         ]);

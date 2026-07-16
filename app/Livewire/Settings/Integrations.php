@@ -38,6 +38,12 @@ class Integrations extends Component
 
     public string $x_user_id = '';
 
+    public string $google_analytics_property_id = '';
+
+    public string $google_merchant_id = '';
+
+    public string $google_tag_manager_container_id = '';
+
     // Secrets (IntegrationCredential — access_token/refresh_token have
     // dedicated columns already; everything else goes in `secrets`)
     public string $salla_client_secret = '';
@@ -66,6 +72,14 @@ class Integrations extends Component
 
     public string $x_refresh_token = '';
 
+    public string $google_analytics_client_email = '';
+
+    public string $google_analytics_private_key = '';
+
+    public string $google_merchant_client_email = '';
+
+    public string $google_merchant_private_key = '';
+
     public function mount(): void
     {
         Gate::authorize('integration.configure');
@@ -79,6 +93,9 @@ class Integrations extends Component
         $this->tiktok_privacy_level = (string) Integration::config($orgId, 'tiktok', 'privacy_level', 'PUBLIC_TO_EVERYONE');
         $this->x_client_id = (string) Integration::config($orgId, 'x', 'client_id', '');
         $this->x_user_id = (string) Integration::config($orgId, 'x', 'user_id', '');
+        $this->google_analytics_property_id = (string) Integration::config($orgId, 'google_analytics', 'property_id', '');
+        $this->google_merchant_id = (string) Integration::config($orgId, 'google_merchant', 'merchant_id', '');
+        $this->google_tag_manager_container_id = (string) Integration::config($orgId, 'google_tag_manager', 'container_id', '');
     }
 
     public function saveSalla(): void
@@ -140,6 +157,53 @@ class Integrations extends Component
         session()->flash('status', 'تم حفظ إعدادات X (تويتر).');
     }
 
+    public function saveGoogleAnalytics(): void
+    {
+        Gate::authorize('integration.configure');
+
+        $this->saveProvider('google_analytics', ['property_id' => $this->google_analytics_property_id], [
+            'client_email' => $this->google_analytics_client_email,
+            'private_key' => $this->google_analytics_private_key,
+        ]);
+
+        $this->reset(['google_analytics_client_email', 'google_analytics_private_key']);
+        session()->flash('status', 'تم حفظ إعدادات Google Analytics.');
+    }
+
+    public function saveGoogleMerchant(): void
+    {
+        Gate::authorize('integration.configure');
+
+        $this->saveProvider('google_merchant', ['merchant_id' => $this->google_merchant_id], [
+            'client_email' => $this->google_merchant_client_email,
+            'private_key' => $this->google_merchant_private_key,
+        ]);
+
+        $this->reset(['google_merchant_client_email', 'google_merchant_private_key']);
+        session()->flash('status', 'تم حفظ إعدادات Google Merchant Center.');
+    }
+
+    public function saveGoogleTagManager(): void
+    {
+        Gate::authorize('integration.configure');
+
+        $this->saveProvider('google_tag_manager', ['container_id' => $this->google_tag_manager_container_id], []);
+
+        // GTM has no live API call to prove connectivity — recording the
+        // container ID IS the complete "connection" step for this
+        // provider, so mark it healthy immediately rather than leaving
+        // it stuck on "configuring" forever.
+        if ($this->google_tag_manager_container_id !== '') {
+            Integration::query()
+                ->where('organization_id', auth()->user()->organization_id)
+                ->where('provider', 'google_tag_manager')
+                ->first()
+                ?->markHealthy();
+        }
+
+        session()->flash('status', 'تم حفظ إعدادات Google Tag Manager.');
+    }
+
     private function saveProvider(string $provider, array $settings, array $secrets, ?string $accessToken = null, ?string $refreshToken = null): void
     {
         $orgId = auth()->user()->organization_id;
@@ -196,6 +260,9 @@ class Integrations extends Component
                 'meta' => $status('meta'),
                 'tiktok' => $status('tiktok'),
                 'x' => $status('x'),
+                'google_analytics' => $status('google_analytics'),
+                'google_merchant' => $status('google_merchant'),
+                'google_tag_manager' => $status('google_tag_manager'),
             ],
         ]);
     }

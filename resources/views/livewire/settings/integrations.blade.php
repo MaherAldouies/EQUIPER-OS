@@ -193,4 +193,80 @@
             </div>
         </form>
     </div>
+
+    {{-- Google Analytics (GA4) --}}
+    <div class="bg-white shadow rounded-lg p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold">Google Analytics (GA4)</h2>
+            @php [$cls, $label] = $statusBadge($statuses['google_analytics']); @endphp
+            <span class="px-2 py-0.5 rounded-full text-xs {{ $cls }}">{{ $label }}</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">يحتاج حساب خدمة (Service Account) من Google Cloud له صلاحية Viewer على خاصية GA4 — لا يحتاج موافقة المستخدم (OAuth Consent).</p>
+
+        <form wire:submit="saveGoogleAnalytics" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-700">Property ID</label>
+                <input type="text" wire:model="google_analytics_property_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700">Service Account Email</label>
+                <input type="text" wire:model="google_analytics_client_email" placeholder="{{ $statuses['google_analytics']?->credential?->secrets['client_email'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-medium text-gray-700">Private Key</label>
+                <textarea wire:model="google_analytics_private_key" rows="3" placeholder="{{ $statuses['google_analytics']?->credential?->secrets['private_key'] ?? null ? '•••• محفوظ' : '-----BEGIN PRIVATE KEY-----...' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ إعدادات Google Analytics</button>
+            </div>
+        </form>
+    </div>
+
+    {{-- Google Merchant Center --}}
+    <div class="bg-white shadow rounded-lg p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold">Google Merchant Center</h2>
+            @php [$cls, $label] = $statusBadge($statuses['google_merchant']); @endphp
+            <span class="px-2 py-0.5 rounded-full text-xs {{ $cls }}">{{ $label }}</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">نفس حساب الخدمة يمكن استخدامه هنا بشرط منحه صلاحية على حساب Merchant Center (Content API for Shopping).</p>
+
+        <form wire:submit="saveGoogleMerchant" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-700">Merchant ID</label>
+                <input type="text" wire:model="google_merchant_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700">Service Account Email</label>
+                <input type="text" wire:model="google_merchant_client_email" placeholder="{{ $statuses['google_merchant']?->credential?->secrets['client_email'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-medium text-gray-700">Private Key</label>
+                <textarea wire:model="google_merchant_private_key" rows="3" placeholder="{{ $statuses['google_merchant']?->credential?->secrets['private_key'] ?? null ? '•••• محفوظ' : '-----BEGIN PRIVATE KEY-----...' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"></textarea>
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ إعدادات Google Merchant Center</button>
+            </div>
+        </form>
+    </div>
+
+    {{-- Google Tag Manager --}}
+    <div class="bg-white shadow rounded-lg p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold">Google Tag Manager</h2>
+            @php [$cls, $label] = $statusBadge($statuses['google_tag_manager']); @endphp
+            <span class="px-2 py-0.5 rounded-full text-xs {{ $cls }}">{{ $label }}</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">مدير الوسوم لا يوفر بيانات أداء مباشرة — هنا فقط لحفظ رقم الحاوية (Container ID) لتركيبه على المتجر.</p>
+
+        <form wire:submit="saveGoogleTagManager" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-700">Container ID</label>
+                <input type="text" wire:model="google_tag_manager_container_id" placeholder="GTM-XXXXXXX" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ إعدادات Google Tag Manager</button>
+            </div>
+        </form>
+    </div>
 </div>
