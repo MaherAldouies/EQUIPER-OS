@@ -54,6 +54,10 @@ return [
     // comments — see TikTokPublisher's doc comment.
     'tiktok' => [
         'api_base_url' => env('TIKTOK_API_BASE_URL', 'https://open.tiktokapis.com/v2'),
+        'auth_url' => env('TIKTOK_AUTH_URL', 'https://www.tiktok.com/v2/auth/authorize/'),
+        'token_url' => env('TIKTOK_TOKEN_URL', 'https://open.tiktokapis.com/v2/oauth/token/'),
+        'client_key' => env('TIKTOK_CLIENT_KEY'),
+        'client_secret' => env('TIKTOK_CLIENT_SECRET'),
         'access_token' => env('TIKTOK_ACCESS_TOKEN'),
         'privacy_level' => env('TIKTOK_PRIVACY_LEVEL', 'PUBLIC_TO_EVERYONE'),
     ],

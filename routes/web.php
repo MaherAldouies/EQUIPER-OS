@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\ContentCalendarController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\GoogleOAuthController;
 use App\Http\Controllers\Web\ProductController;
+use App\Http\Controllers\Web\TikTokOAuthController;
 use App\Livewire\Approvals\Queue as ApprovalsQueue;
 use App\Livewire\Inbox\Index as InboxIndex;
 use App\Livewire\Products\Index as ProductsIndex;
@@ -103,5 +104,10 @@ Route::middleware(['auth', 'current-organization'])->group(function () {
             ->name('integrations.google.connect');
         Route::get('integrations/google/callback', [GoogleOAuthController::class, 'callback'])
             ->name('integrations.google.callback');
+
+        Route::get('integrations/tiktok/connect', [TikTokOAuthController::class, 'connect'])
+            ->name('integrations.tiktok.connect');
+        Route::get('integrations/tiktok/callback', [TikTokOAuthController::class, 'callback'])
+            ->name('integrations.tiktok.callback');
     });
 });

@@ -143,22 +143,51 @@
         </div>
         <p class="text-xs text-amber-600 mb-3">نشر فقط — تيك توك لا يوفر API للرد على التعليقات (قيد من المنصة نفسها).</p>
 
-        <form wire:submit="saveTiktok" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Privacy Level</label>
-                <select wire:model="tiktok_privacy_level" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-                    <option value="PUBLIC_TO_EVERYONE">عام للجميع</option>
-                    <option value="MUTUAL_FOLLOW_FRIENDS">المتابعون المتبادلون</option>
-                    <option value="SELF_ONLY">أنا فقط (مسودة)</option>
-                </select>
+        <div class="mb-3 text-xs bg-gray-50 rounded p-2">
+            <span class="text-gray-500">رابط إعادة التوجيه (الصقه في TikTok Developers ‹ تطبيقك ‹ Login Kit ‹ Redirect URI):</span>
+            <code class="block mt-1 select-all">{{ $tiktokRedirectUri }}</code>
+        </div>
+
+        <form wire:submit="saveTiktok">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700">Client Key</label>
+                    <input type="text" wire:model="tiktok_client_key" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700">Client Secret</label>
+                    <input type="password" wire:model="tiktok_client_secret" placeholder="{{ $statuses['tiktok']?->credential?->secrets['client_secret'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700">Privacy Level</label>
+                    <select wire:model="tiktok_privacy_level" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                        <option value="PUBLIC_TO_EVERYONE">عام للجميع</option>
+                        <option value="MUTUAL_FOLLOW_FRIENDS">المتابعون المتبادلون</option>
+                        <option value="SELF_ONLY">أنا فقط (مسودة)</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Access Token</label>
-                <input type="password" wire:model="tiktok_access_token" placeholder="{{ $statuses['tiktok']?->credential?->access_token ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+
+            <div class="flex items-center gap-3 flex-wrap">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ</button>
+                <a href="{{ route('integrations.tiktok.connect') }}" class="inline-flex items-center gap-2 border border-gray-300 text-sm rounded-md px-4 py-2 hover:bg-gray-50">ربط بحساب TikTok</a>
+                @if ($statuses['tiktok']?->credential?->refresh_token)
+                    <span class="text-xs text-green-700">✓ متصل عبر حساب TikTok</span>
+                @endif
             </div>
-            <div class="sm:col-span-2">
-                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ إعدادات تيك توك</button>
-            </div>
+
+            <details class="mt-4">
+                <summary class="text-xs text-gray-500 cursor-pointer select-none">أو الصق Access Token يدويًا بدل تسجيل الدخول</summary>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700">Access Token</label>
+                        <input type="password" wire:model="tiktok_access_token" placeholder="{{ $statuses['tiktok']?->credential?->access_token ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="bg-gray-100 text-gray-800 text-sm rounded-md px-4 py-2 hover:bg-gray-200">حفظ Access Token</button>
+                    </div>
+                </div>
+            </details>
         </form>
     </div>
 

@@ -34,6 +34,8 @@ class Integrations extends Component
 
     public string $tiktok_privacy_level = 'PUBLIC_TO_EVERYONE';
 
+    public string $tiktok_client_key = '';
+
     public string $x_client_id = '';
 
     public string $x_user_id = '';
@@ -70,6 +72,8 @@ class Integrations extends Component
 
     public string $tiktok_access_token = '';
 
+    public string $tiktok_client_secret = '';
+
     public string $x_access_token = '';
 
     public string $x_refresh_token = '';
@@ -95,6 +99,7 @@ class Integrations extends Component
         $this->meta_ig_user_id = (string) Integration::config($orgId, 'meta', 'ig_user_id', '');
         $this->meta_page_id = (string) Integration::config($orgId, 'meta', 'page_id', '');
         $this->tiktok_privacy_level = (string) Integration::config($orgId, 'tiktok', 'privacy_level', 'PUBLIC_TO_EVERYONE');
+        $this->tiktok_client_key = (string) Integration::config($orgId, 'tiktok', 'client_key', '');
         $this->x_client_id = (string) Integration::config($orgId, 'x', 'client_id', '');
         $this->x_user_id = (string) Integration::config($orgId, 'x', 'user_id', '');
         $this->google_analytics_property_id = (string) Integration::config($orgId, 'google_analytics', 'property_id', '');
@@ -146,9 +151,14 @@ class Integrations extends Component
     {
         Gate::authorize('integration.configure');
 
-        $this->saveProvider('tiktok', ['privacy_level' => $this->tiktok_privacy_level], [], accessToken: $this->tiktok_access_token);
+        $this->saveProvider('tiktok', [
+            'privacy_level' => $this->tiktok_privacy_level,
+            'client_key' => $this->tiktok_client_key,
+        ], [
+            'client_secret' => $this->tiktok_client_secret,
+        ], accessToken: $this->tiktok_access_token);
 
-        $this->reset(['tiktok_access_token']);
+        $this->reset(['tiktok_access_token', 'tiktok_client_secret']);
         session()->flash('status', 'تم حفظ إعدادات تيك توك.');
     }
 
@@ -267,6 +277,7 @@ class Integrations extends Component
 
         return view('livewire.settings.integrations', [
             'googleRedirectUri' => route('integrations.google.callback'),
+            'tiktokRedirectUri' => route('integrations.tiktok.callback'),
             'webhookUrls' => [
                 'salla' => url('/api/webhooks/salla'),
                 'whatsapp' => url('/api/webhooks/whatsapp'),

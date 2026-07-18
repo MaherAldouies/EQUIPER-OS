@@ -153,6 +153,26 @@ class SettingsIntegrationsTest extends TestCase
         $this->assertSame('merchant-svc@project.iam.gserviceaccount.com', $integration->credential->secrets['client_email']);
     }
 
+    public function test_saving_tiktok_settings_persists_client_credentials(): void
+    {
+        $organization = Organization::factory()->create();
+        $user = $this->configuratorUser($organization);
+
+        Livewire::actingAs($user)
+            ->test(Integrations::class)
+            ->set('tiktok_client_key', 'tt-client-key')
+            ->set('tiktok_client_secret', 'tt-client-secret')
+            ->set('tiktok_privacy_level', 'SELF_ONLY')
+            ->call('saveTiktok')
+            ->assertSet('tiktok_client_secret', '');
+
+        $integration = Integration::query()->where('organization_id', $organization->id)->where('provider', 'tiktok')->firstOrFail();
+
+        $this->assertSame('tt-client-key', $integration->settings['client_key']);
+        $this->assertSame('SELF_ONLY', $integration->settings['privacy_level']);
+        $this->assertSame('tt-client-secret', $integration->credential->secrets['client_secret']);
+    }
+
     public function test_saving_google_tag_manager_container_id_marks_it_healthy(): void
     {
         $organization = Organization::factory()->create();
