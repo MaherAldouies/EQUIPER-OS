@@ -48,7 +48,15 @@ class MetaMessagingService
 
     private function token(string $organizationId): string
     {
-        $token = Integration::config($organizationId, 'meta', 'access_token');
+        // Deliberately reads the credential's access_token column
+        // directly (not Integration::config(), which only checks
+        // settings/secrets/env — never the dedicated token columns).
+        $token = Integration::query()
+            ->where('organization_id', $organizationId)
+            ->where('provider', 'meta')
+            ->first()
+            ?->credential
+            ?->access_token;
 
         if (! $token) {
             throw new RuntimeException('Meta is not configured — set it up on the Integrations settings page.');

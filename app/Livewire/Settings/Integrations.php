@@ -28,6 +28,8 @@ class Integrations extends Component
 
     public string $whatsapp_phone_number_id = '';
 
+    public string $meta_client_id = '';
+
     public string $meta_ig_user_id = '';
 
     public string $meta_page_id = '';
@@ -96,6 +98,7 @@ class Integrations extends Component
         $orgId = auth()->user()->organization_id;
         $this->salla_client_id = (string) Integration::config($orgId, 'salla', 'client_id', '');
         $this->whatsapp_phone_number_id = (string) Integration::config($orgId, 'whatsapp', 'phone_number_id', '');
+        $this->meta_client_id = (string) Integration::config($orgId, 'meta', 'client_id', '');
         $this->meta_ig_user_id = (string) Integration::config($orgId, 'meta', 'ig_user_id', '');
         $this->meta_page_id = (string) Integration::config($orgId, 'meta', 'page_id', '');
         $this->tiktok_privacy_level = (string) Integration::config($orgId, 'tiktok', 'privacy_level', 'PUBLIC_TO_EVERYONE');
@@ -138,7 +141,11 @@ class Integrations extends Component
     {
         Gate::authorize('integration.configure');
 
-        $this->saveProvider('meta', ['ig_user_id' => $this->meta_ig_user_id, 'page_id' => $this->meta_page_id], [
+        $this->saveProvider('meta', [
+            'client_id' => $this->meta_client_id,
+            'ig_user_id' => $this->meta_ig_user_id,
+            'page_id' => $this->meta_page_id,
+        ], [
             'verify_token' => $this->meta_verify_token,
             'app_secret' => $this->meta_app_secret,
         ], accessToken: $this->meta_access_token);

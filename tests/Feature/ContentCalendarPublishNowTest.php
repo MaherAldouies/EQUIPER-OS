@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ContentAsset;
+use App\Models\Integration;
 use App\Models\Organization;
 use App\Models\Permission;
 use App\Models\Role;
@@ -20,10 +21,17 @@ class ContentCalendarPublishNowTest extends TestCase
     {
         parent::setUp();
         $this->seed(EventCatalogSeeder::class);
-        config([
-            'equiperos.meta.ig_user_id' => '17841400000000000',
-            'equiperos.meta.access_token' => 'test-token',
+        config(['equiperos.meta.ig_user_id' => '17841400000000000']);
+    }
+
+    private function connectMeta(string $organizationId): void
+    {
+        $integration = Integration::query()->create([
+            'organization_id' => $organizationId,
+            'provider' => 'meta',
+            'status' => 'connected',
         ]);
+        $integration->credential()->create(['access_token' => 'test-token']);
     }
 
     private function socialUser(Organization $organization): User
@@ -50,6 +58,7 @@ class ContentCalendarPublishNowTest extends TestCase
         ]);
 
         $organization = Organization::factory()->create();
+        $this->connectMeta($organization->id);
         $user = $this->socialUser($organization);
         $asset = ContentAsset::factory()->approved()->create([
             'organization_id' => $organization->id,

@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\ContentApprovalController;
 use App\Http\Controllers\Web\ContentCalendarController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\GoogleOAuthController;
+use App\Http\Controllers\Web\MetaOAuthController;
 use App\Http\Controllers\Web\ProductController;
 use App\Http\Controllers\Web\TikTokOAuthController;
 use App\Livewire\Approvals\Queue as ApprovalsQueue;
@@ -109,5 +110,14 @@ Route::middleware(['auth', 'current-organization'])->group(function () {
             ->name('integrations.tiktok.connect');
         Route::get('integrations/tiktok/callback', [TikTokOAuthController::class, 'callback'])
             ->name('integrations.tiktok.callback');
+
+        Route::get('integrations/meta/connect', [MetaOAuthController::class, 'connect'])
+            ->name('integrations.meta.connect');
+        Route::get('integrations/meta/callback', [MetaOAuthController::class, 'callback'])
+            ->name('integrations.meta.callback');
+        Route::get('integrations/meta/pick-page', [MetaOAuthController::class, 'pickPage'])
+            ->name('integrations.meta.pick-page');
+        Route::post('integrations/meta/select-page', [MetaOAuthController::class, 'selectPage'])
+            ->name('integrations.meta.select-page');
     });
 });

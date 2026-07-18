@@ -42,6 +42,13 @@ return [
     // see the Social Media Hub plan for what that entails.
     'meta' => [
         'api_base_url' => env('META_API_BASE_URL', 'https://graph.facebook.com/v23.0'),
+        'auth_url' => env('META_AUTH_URL', 'https://www.facebook.com/v23.0/dialog/oauth'),
+        // App ID — public, safe in settings. App Secret doubles as the
+        // OAuth client_secret AND the webhook HMAC key (see
+        // SocialInboxWebhookController) — Meta issues only one secret
+        // per app, so `app_secret` below is reused for both purposes
+        // rather than storing it twice under different field names.
+        'client_id' => env('META_CLIENT_ID'),
         'ig_user_id' => env('META_IG_USER_ID'),
         'page_id' => env('META_PAGE_ID'),
         'access_token' => env('META_ACCESS_TOKEN'),

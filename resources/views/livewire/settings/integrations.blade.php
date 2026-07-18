@@ -107,30 +107,50 @@
             <code class="block mt-1 select-all">{{ $webhookUrls['meta'] }}</code>
         </div>
 
-        <form wire:submit="saveMeta" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Instagram User ID</label>
-                <input type="text" wire:model="meta_ig_user_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+        <form wire:submit="saveMeta">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700">App ID</label>
+                    <input type="text" wire:model="meta_client_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700">App Secret</label>
+                    <input type="password" wire:model="meta_app_secret" placeholder="{{ $statuses['meta']?->credential?->secrets['app_secret'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700">Verify Token (اختره بنفسك)</label>
+                    <input type="password" wire:model="meta_verify_token" placeholder="{{ $statuses['meta']?->credential?->secrets['verify_token'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Facebook Page ID</label>
-                <input type="text" wire:model="meta_page_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+
+            <div class="flex items-center gap-3 flex-wrap">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ</button>
+                <a href="{{ route('integrations.meta.connect') }}" class="inline-flex items-center gap-2 border border-gray-300 text-sm rounded-md px-4 py-2 hover:bg-gray-50">ربط بحساب Meta</a>
+                @if ($statuses['meta']?->status === 'connected')
+                    <span class="text-xs text-green-700">✓ متصل — صفحة {{ $statuses['meta']->settings['page_id'] ?? '' }}</span>
+                @endif
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Access Token</label>
-                <input type="password" wire:model="meta_access_token" placeholder="{{ $statuses['meta']?->credential?->access_token ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Verify Token (اختره بنفسك)</label>
-                <input type="password" wire:model="meta_verify_token" placeholder="{{ $statuses['meta']?->credential?->secrets['verify_token'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-700">App Secret</label>
-                <input type="password" wire:model="meta_app_secret" placeholder="{{ $statuses['meta']?->credential?->secrets['app_secret'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
-            </div>
-            <div class="sm:col-span-2">
-                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ إعدادات Instagram/Facebook</button>
-            </div>
+
+            <details class="mt-4">
+                <summary class="text-xs text-gray-500 cursor-pointer select-none">أو أدخل Page ID / Instagram User ID / Access Token يدويًا بدل تسجيل الدخول</summary>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700">Instagram User ID</label>
+                        <input type="text" wire:model="meta_ig_user_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700">Facebook Page ID</label>
+                        <input type="text" wire:model="meta_page_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-700">Access Token</label>
+                        <input type="password" wire:model="meta_access_token" placeholder="{{ $statuses['meta']?->credential?->access_token ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="bg-gray-100 text-gray-800 text-sm rounded-md px-4 py-2 hover:bg-gray-200">حفظ يدويًا</button>
+                    </div>
+                </div>
+            </details>
         </form>
     </div>
 

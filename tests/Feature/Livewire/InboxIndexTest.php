@@ -3,6 +3,7 @@
 namespace Tests\Feature\Livewire;
 
 use App\Livewire\Inbox\Index;
+use App\Models\Integration;
 use App\Models\Organization;
 use App\Models\Permission;
 use App\Models\Role;
@@ -22,7 +23,27 @@ class InboxIndexTest extends TestCase
     {
         parent::setUp();
         $this->seed(EventCatalogSeeder::class);
-        config(['equiperos.whatsapp.phone_number_id' => '123', 'equiperos.whatsapp.access_token' => 'token']);
+    }
+
+    private function connectWhatsapp(string $organizationId): void
+    {
+        $integration = Integration::query()->create([
+            'organization_id' => $organizationId,
+            'provider' => 'whatsapp',
+            'status' => 'connected',
+            'settings' => ['phone_number_id' => '123'],
+        ]);
+        $integration->credential()->create(['access_token' => 'token']);
+    }
+
+    private function connectMeta(string $organizationId): void
+    {
+        $integration = Integration::query()->create([
+            'organization_id' => $organizationId,
+            'provider' => 'meta',
+            'status' => 'connected',
+        ]);
+        $integration->credential()->create(['access_token' => 'meta-token']);
     }
 
     private function socialUser(Organization $organization): User
@@ -61,6 +82,7 @@ class InboxIndexTest extends TestCase
         ]);
 
         $organization = Organization::factory()->create();
+        $this->connectWhatsapp($organization->id);
         $user = $this->socialUser($organization);
         $inbound = SocialMessage::factory()->create([
             'organization_id' => $organization->id,
@@ -108,12 +130,12 @@ class InboxIndexTest extends TestCase
 
     public function test_replying_to_a_meta_comment_uses_the_comment_reply_endpoint(): void
     {
-        config(['equiperos.meta.access_token' => 'meta-token']);
         Http::fake([
             '*/COMMENT1/replies' => Http::response(['id' => 'REPLY1'], 200),
         ]);
 
         $organization = Organization::factory()->create();
+        $this->connectMeta($organization->id);
         $user = $this->socialUser($organization);
         SocialMessage::factory()->create([
             'organization_id' => $organization->id,

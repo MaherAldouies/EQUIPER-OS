@@ -24,7 +24,15 @@ class WhatsAppService
     public function sendMessage(string $organizationId, string $toPhoneNumber, string $body): string
     {
         $phoneNumberId = Integration::config($organizationId, 'whatsapp', 'phone_number_id');
-        $token = Integration::config($organizationId, 'whatsapp', 'access_token');
+        // Deliberately reads the credential's access_token column
+        // directly (not Integration::config(), which only checks
+        // settings/secrets/env — never the dedicated token columns).
+        $token = Integration::query()
+            ->where('organization_id', $organizationId)
+            ->where('provider', 'whatsapp')
+            ->first()
+            ?->credential
+            ?->access_token;
 
         if (! $phoneNumberId || ! $token) {
             throw new RuntimeException('WhatsApp is not configured — set it up on the Integrations settings page.');
