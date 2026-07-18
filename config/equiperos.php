@@ -100,4 +100,16 @@ return [
         'container_id' => env('GOOGLE_TAG_MANAGER_CONTAINER_ID'),
     ],
 
+    // "Connect with Google" (OAuth) — the simpler alternative to the
+    // google_analytics/google_merchant service-account fields above: one
+    // OAuth Client ID/Secret (created once in Google Cloud Console),
+    // then a normal Google sign-in + consent click per platform instead
+    // of copy-pasting a private key and granting access manually.
+    'google' => [
+        'auth_url' => env('GOOGLE_OAUTH_AUTH_URL', 'https://accounts.google.com/o/oauth2/v2/auth'),
+        'token_url' => env('GOOGLE_OAUTH_TOKEN_URL', 'https://oauth2.googleapis.com/token'),
+        'client_id' => env('GOOGLE_OAUTH_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_OAUTH_CLIENT_SECRET'),
+    ],
+
 ];

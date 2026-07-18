@@ -194,6 +194,35 @@
         </form>
     </div>
 
+    {{-- Google OAuth App — powers the "ربط بحساب Google" one-click buttons below --}}
+    <div class="bg-white shadow rounded-lg p-5">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold">تطبيق Google (تسجيل الدخول بضغطة واحدة)</h2>
+            @php [$cls, $label] = $statusBadge($statuses['google']); @endphp
+            <span class="px-2 py-0.5 rounded-full text-xs {{ $cls }}">{{ $label }}</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-3">
+            بيانات تُنشأ مرة واحدة بس من Google Cloud Console (Credentials ‹ Create Credentials ‹ OAuth client ID ‹ Web application) —
+            بعدها هتقدر تربط Analytics أو Merchant Center بضغطة واحدة من غير نسخ/لصق أي مفتاح. رابط إعادة التوجيه (Redirect URI) اللي تحطه هناك:
+        </p>
+        <div class="mb-3 text-xs bg-gray-50 rounded p-2">
+            <code class="block mt-1 select-all">{{ $googleRedirectUri }}</code>
+        </div>
+        <form wire:submit="saveGoogleOAuthApp" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-gray-700">Client ID</label>
+                <input type="text" wire:model="google_client_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-700">Client Secret</label>
+                <input type="password" wire:model="google_client_secret" placeholder="{{ $statuses['google']?->credential?->secrets['client_secret'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+            </div>
+            <div class="sm:col-span-2">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ بيانات تطبيق Google</button>
+            </div>
+        </form>
+    </div>
+
     {{-- Google Analytics (GA4) --}}
     <div class="bg-white shadow rounded-lg p-5">
         <div class="flex items-center justify-between mb-3">
@@ -201,24 +230,38 @@
             @php [$cls, $label] = $statusBadge($statuses['google_analytics']); @endphp
             <span class="px-2 py-0.5 rounded-full text-xs {{ $cls }}">{{ $label }}</span>
         </div>
-        <p class="text-xs text-gray-500 mb-3">يحتاج حساب خدمة (Service Account) من Google Cloud له صلاحية Viewer على خاصية GA4 — لا يحتاج موافقة المستخدم (OAuth Consent).</p>
 
-        <form wire:submit="saveGoogleAnalytics" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Property ID</label>
-                <input type="text" wire:model="google_analytics_property_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+        <form wire:submit="saveGoogleAnalytics">
+            <div class="mb-4 max-w-xs">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Property ID</label>
+                <input type="text" wire:model="google_analytics_property_id" class="w-full rounded-md border-gray-300 text-sm">
+                <p class="text-xs text-gray-400 mt-1">GA4 ‹ Admin ‹ Property Details</p>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Service Account Email</label>
-                <input type="text" wire:model="google_analytics_client_email" placeholder="{{ $statuses['google_analytics']?->credential?->secrets['client_email'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+
+            <div class="flex items-center gap-3 flex-wrap">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ</button>
+                <a href="{{ route('integrations.google.connect', 'google_analytics') }}" class="inline-flex items-center gap-2 border border-gray-300 text-sm rounded-md px-4 py-2 hover:bg-gray-50">ربط بحساب Google</a>
+                @if ($statuses['google_analytics']?->credential?->refresh_token)
+                    <span class="text-xs text-green-700">✓ متصل عبر حساب Google</span>
+                @endif
             </div>
-            <div class="sm:col-span-2">
-                <label class="block text-xs font-medium text-gray-700">Private Key</label>
-                <textarea wire:model="google_analytics_private_key" rows="3" placeholder="{{ $statuses['google_analytics']?->credential?->secrets['private_key'] ?? null ? '•••• محفوظ' : '-----BEGIN PRIVATE KEY-----...' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"></textarea>
-            </div>
-            <div class="sm:col-span-2">
-                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ إعدادات Google Analytics</button>
-            </div>
+
+            <details class="mt-4">
+                <summary class="text-xs text-gray-500 cursor-pointer select-none">أو استخدم حساب خدمة (Service Account) بدل تسجيل الدخول</summary>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700">Service Account Email</label>
+                        <input type="text" wire:model="google_analytics_client_email" placeholder="{{ $statuses['google_analytics']?->credential?->secrets['client_email'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-700">Private Key</label>
+                        <textarea wire:model="google_analytics_private_key" rows="3" placeholder="{{ $statuses['google_analytics']?->credential?->secrets['private_key'] ?? null ? '•••• محفوظ' : '-----BEGIN PRIVATE KEY-----...' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"></textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="bg-gray-100 text-gray-800 text-sm rounded-md px-4 py-2 hover:bg-gray-200">حفظ بيانات Service Account</button>
+                    </div>
+                </div>
+            </details>
         </form>
     </div>
 
@@ -229,24 +272,38 @@
             @php [$cls, $label] = $statusBadge($statuses['google_merchant']); @endphp
             <span class="px-2 py-0.5 rounded-full text-xs {{ $cls }}">{{ $label }}</span>
         </div>
-        <p class="text-xs text-gray-500 mb-3">نفس حساب الخدمة يمكن استخدامه هنا بشرط منحه صلاحية على حساب Merchant Center (Content API for Shopping).</p>
 
-        <form wire:submit="saveGoogleMerchant" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Merchant ID</label>
-                <input type="text" wire:model="google_merchant_id" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+        <form wire:submit="saveGoogleMerchant">
+            <div class="mb-4 max-w-xs">
+                <label class="block text-xs font-medium text-gray-700 mb-1">Merchant ID</label>
+                <input type="text" wire:model="google_merchant_id" class="w-full rounded-md border-gray-300 text-sm">
+                <p class="text-xs text-gray-400 mt-1">أعلى صفحة Merchant Center</p>
             </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-700">Service Account Email</label>
-                <input type="text" wire:model="google_merchant_client_email" placeholder="{{ $statuses['google_merchant']?->credential?->secrets['client_email'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+
+            <div class="flex items-center gap-3 flex-wrap">
+                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ</button>
+                <a href="{{ route('integrations.google.connect', 'google_merchant') }}" class="inline-flex items-center gap-2 border border-gray-300 text-sm rounded-md px-4 py-2 hover:bg-gray-50">ربط بحساب Google</a>
+                @if ($statuses['google_merchant']?->credential?->refresh_token)
+                    <span class="text-xs text-green-700">✓ متصل عبر حساب Google</span>
+                @endif
             </div>
-            <div class="sm:col-span-2">
-                <label class="block text-xs font-medium text-gray-700">Private Key</label>
-                <textarea wire:model="google_merchant_private_key" rows="3" placeholder="{{ $statuses['google_merchant']?->credential?->secrets['private_key'] ?? null ? '•••• محفوظ' : '-----BEGIN PRIVATE KEY-----...' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"></textarea>
-            </div>
-            <div class="sm:col-span-2">
-                <button type="submit" class="bg-gray-900 text-white text-sm rounded-md px-4 py-2 hover:bg-gray-800">حفظ إعدادات Google Merchant Center</button>
-            </div>
+
+            <details class="mt-4">
+                <summary class="text-xs text-gray-500 cursor-pointer select-none">أو استخدم حساب خدمة (Service Account) بدل تسجيل الدخول</summary>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700">Service Account Email</label>
+                        <input type="text" wire:model="google_merchant_client_email" placeholder="{{ $statuses['google_merchant']?->credential?->secrets['client_email'] ?? null ? '•••• محفوظ' : '' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-gray-700">Private Key</label>
+                        <textarea wire:model="google_merchant_private_key" rows="3" placeholder="{{ $statuses['google_merchant']?->credential?->secrets['private_key'] ?? null ? '•••• محفوظ' : '-----BEGIN PRIVATE KEY-----...' }}" class="mt-1 w-full rounded-md border-gray-300 text-sm font-mono"></textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="bg-gray-100 text-gray-800 text-sm rounded-md px-4 py-2 hover:bg-gray-200">حفظ بيانات Service Account</button>
+                    </div>
+                </div>
+            </details>
         </form>
     </div>
 

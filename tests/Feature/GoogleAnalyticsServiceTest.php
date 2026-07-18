@@ -72,6 +72,45 @@ class GoogleAnalyticsServiceTest extends TestCase
         $this->assertSame('connected', $integration->status);
     }
 
+    public function test_pull_daily_summary_prefers_oauth_credential_over_service_account(): void
+    {
+        $organization = Organization::factory()->create();
+
+        Integration::query()->create([
+            'organization_id' => $organization->id,
+            'provider' => 'google',
+            'settings' => ['client_id' => 'oauth-client-id'],
+        ])->credential()->create(['secrets' => ['client_secret' => 'oauth-client-secret']]);
+
+        $integration = Integration::query()->create([
+            'organization_id' => $organization->id,
+            'provider' => 'google_analytics',
+            'status' => 'configuring',
+            'settings' => ['property_id' => 'properties/123456'],
+        ]);
+        // Expired access token + a refresh_token: forces the OAuth refresh path.
+        $integration->credential()->create([
+            'access_token' => 'stale-token',
+            'refresh_token' => 'oauth-refresh-token',
+            'expires_at' => now()->subHour(),
+        ]);
+
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response(['access_token' => 'refreshed-token', 'expires_in' => 3600], 200),
+            'https://analyticsdata.googleapis.com/*' => Http::response([
+                'rows' => [['metricValues' => [['value' => '5'], ['value' => '2'], ['value' => '1']]]],
+            ], 200),
+        ]);
+
+        (new GoogleAnalyticsService($organization->id))->pullDailySummary(now());
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://oauth2.googleapis.com/token'
+            && $request['grant_type'] === 'refresh_token'
+            && $request['refresh_token'] === 'oauth-refresh-token');
+
+        $this->assertSame(5.0, (float) AnalyticsSignal::query()->where('metric_key', 'ga4_sessions')->where('organization_id', $organization->id)->firstOrFail()->value);
+    }
+
     public function test_pull_daily_summary_marks_degraded_on_api_failure(): void
     {
         $organization = Organization::factory()->create();

@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\CampaignController;
 use App\Http\Controllers\Web\ContentApprovalController;
 use App\Http\Controllers\Web\ContentCalendarController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\GoogleOAuthController;
 use App\Http\Controllers\Web\ProductController;
 use App\Livewire\Approvals\Queue as ApprovalsQueue;
 use App\Livewire\Inbox\Index as InboxIndex;
@@ -96,5 +97,11 @@ Route::middleware(['auth', 'current-organization'])->group(function () {
 
     Route::middleware('permission:integration.configure')->group(function () {
         Route::get('settings/integrations', IntegrationsSettings::class)->name('settings.integrations');
+
+        Route::get('integrations/google/connect/{provider}', [GoogleOAuthController::class, 'connect'])
+            ->where('provider', 'google_analytics|google_merchant')
+            ->name('integrations.google.connect');
+        Route::get('integrations/google/callback', [GoogleOAuthController::class, 'callback'])
+            ->name('integrations.google.callback');
     });
 });

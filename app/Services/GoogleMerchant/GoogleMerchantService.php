@@ -4,7 +4,7 @@ namespace App\Services\GoogleMerchant;
 
 use App\Models\AnalyticsSignal;
 use App\Models\Integration;
-use App\Services\Google\GoogleServiceAccountToken;
+use App\Services\Google\ResolvesGoogleAccessToken;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -14,10 +14,13 @@ use Throwable;
 /**
  * GoogleMerchantService — F9 Dashboard: pulls product feed health
  * (active product count, count with issues) from the Content API for
- * Shopping, via the same service-account auth as GoogleAnalyticsService.
+ * Shopping. Supports the same two auth paths as GoogleAnalyticsService
+ * — see ResolvesGoogleAccessToken.
  */
 class GoogleMerchantService
 {
+    use ResolvesGoogleAccessToken;
+
     private const SCOPE = 'https://www.googleapis.com/auth/content';
 
     public function __construct(
@@ -27,15 +30,17 @@ class GoogleMerchantService
     public function pullDailySummary(\DateTimeInterface $date): void
     {
         $merchantId = Integration::config($this->organizationId, 'google_merchant', 'merchant_id');
-        $clientEmail = Integration::config($this->organizationId, 'google_merchant', 'client_email');
-        $privateKey = Integration::config($this->organizationId, 'google_merchant', 'private_key');
 
-        if (! $merchantId || ! $clientEmail || ! $privateKey) {
+        if (! $merchantId) {
             return; // not configured yet — nothing to sync
         }
 
         try {
-            $token = GoogleServiceAccountToken::mint((string) $clientEmail, (string) $privateKey, self::SCOPE);
+            $token = $this->resolveAccessToken('google_merchant', self::SCOPE);
+
+            if (! $token) {
+                return; // merchant ID saved but no credential connected yet
+            }
 
             $baseUrl = Integration::config($this->organizationId, 'google_merchant', 'api_base_url', config('equiperos.google_merchant.api_base_url'));
 

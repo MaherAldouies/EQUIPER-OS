@@ -4,7 +4,7 @@ namespace App\Services\GoogleAnalytics;
 
 use App\Models\AnalyticsSignal;
 use App\Models\Integration;
-use App\Services\Google\GoogleServiceAccountToken;
+use App\Services\Google\ResolvesGoogleAccessToken;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,13 +13,15 @@ use Throwable;
 
 /**
  * GoogleAnalyticsService — F9 Dashboard: pulls daily sessions/users/
- * conversions from the GA4 Data API (read-only) via a service account
- * (Integration::config 'google_analytics'). No user OAuth consent
- * screen — the service account must be granted Viewer access on the
- * GA4 property in Google Analytics Admin.
+ * conversions from the GA4 Data API (read-only). Supports two ways to
+ * authorize (see ResolvesGoogleAccessToken): "Connect with Google"
+ * OAuth (simplest — one sign-in + consent click), or a manually pasted
+ * service-account key for setups that need a non-interactive credential.
  */
 class GoogleAnalyticsService
 {
+    use ResolvesGoogleAccessToken;
+
     private const SCOPE = 'https://www.googleapis.com/auth/analytics.readonly';
 
     public function __construct(
@@ -29,15 +31,17 @@ class GoogleAnalyticsService
     public function pullDailySummary(\DateTimeInterface $date): void
     {
         $propertyId = Integration::config($this->organizationId, 'google_analytics', 'property_id');
-        $clientEmail = Integration::config($this->organizationId, 'google_analytics', 'client_email');
-        $privateKey = Integration::config($this->organizationId, 'google_analytics', 'private_key');
 
-        if (! $propertyId || ! $clientEmail || ! $privateKey) {
+        if (! $propertyId) {
             return; // not configured yet — nothing to sync
         }
 
         try {
-            $token = GoogleServiceAccountToken::mint((string) $clientEmail, (string) $privateKey, self::SCOPE);
+            $token = $this->resolveAccessToken('google_analytics', self::SCOPE);
+
+            if (! $token) {
+                return; // property ID saved but no credential connected yet
+            }
 
             $baseUrl = Integration::config($this->organizationId, 'google_analytics', 'api_base_url', config('equiperos.google_analytics.api_base_url'));
 

@@ -44,6 +44,8 @@ class Integrations extends Component
 
     public string $google_tag_manager_container_id = '';
 
+    public string $google_client_id = '';
+
     // Secrets (IntegrationCredential — access_token/refresh_token have
     // dedicated columns already; everything else goes in `secrets`)
     public string $salla_client_secret = '';
@@ -80,6 +82,8 @@ class Integrations extends Component
 
     public string $google_merchant_private_key = '';
 
+    public string $google_client_secret = '';
+
     public function mount(): void
     {
         Gate::authorize('integration.configure');
@@ -96,6 +100,7 @@ class Integrations extends Component
         $this->google_analytics_property_id = (string) Integration::config($orgId, 'google_analytics', 'property_id', '');
         $this->google_merchant_id = (string) Integration::config($orgId, 'google_merchant', 'merchant_id', '');
         $this->google_tag_manager_container_id = (string) Integration::config($orgId, 'google_tag_manager', 'container_id', '');
+        $this->google_client_id = (string) Integration::config($orgId, 'google', 'client_id', '');
     }
 
     public function saveSalla(): void
@@ -204,6 +209,18 @@ class Integrations extends Component
         session()->flash('status', 'تم حفظ إعدادات Google Tag Manager.');
     }
 
+    public function saveGoogleOAuthApp(): void
+    {
+        Gate::authorize('integration.configure');
+
+        $this->saveProvider('google', ['client_id' => $this->google_client_id], [
+            'client_secret' => $this->google_client_secret,
+        ]);
+
+        $this->reset(['google_client_secret']);
+        session()->flash('status', 'تم حفظ بيانات تطبيق Google — تقدر دلوقتي تضغط "ربط بحساب Google" في كارت Analytics أو Merchant Center.');
+    }
+
     private function saveProvider(string $provider, array $settings, array $secrets, ?string $accessToken = null, ?string $refreshToken = null): void
     {
         $orgId = auth()->user()->organization_id;
@@ -249,6 +266,7 @@ class Integrations extends Component
             ->first();
 
         return view('livewire.settings.integrations', [
+            'googleRedirectUri' => route('integrations.google.callback'),
             'webhookUrls' => [
                 'salla' => url('/api/webhooks/salla'),
                 'whatsapp' => url('/api/webhooks/whatsapp'),
@@ -263,6 +281,7 @@ class Integrations extends Component
                 'google_analytics' => $status('google_analytics'),
                 'google_merchant' => $status('google_merchant'),
                 'google_tag_manager' => $status('google_tag_manager'),
+                'google' => $status('google'),
             ],
         ]);
     }
